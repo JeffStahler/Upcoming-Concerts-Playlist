@@ -6,58 +6,86 @@
 		<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
 		<script type="text/javascript" src="js/jquery-ui-1.8.17.custom.min.js"></script>
 		<script type="text/javascript" src="js/lastfm.js"></script>
+	    <script type="text/javascript" src="js/songkick.js"></script>
 		<script type="text/javascript">
 			$(function(){
+				location_search('Chicago',function(data)
+				{
+				x = data.resultsPage.results.location
+				inspect = x 	
+				})
 				root_api_url = 'http://ws.audioscrobbler.com/2.0/'
-				venue_name = 'Empty Bottle'
+				//venue_name = 'Empty Bottle'
 				method_str = 'venue.search'
 				// Datepicker
-				
-				$('#datepicker').datepicker({
+				$("#venue_name_btn").button()
+				$('#startdatepicker').datepicker({
 					inline: true
 				});
-				$('#output').text(API_key) 
-				var venue_id;
-				var inspect; 
-				$.ajax({
-					dataType:'jsonp',
-					data:{
-						venue: venue_name, 
-						format: 'json',
-						method: method_str,
-						api_key: API_key
-					},
-					url: root_api_url,
-					error: function(){
-					$('#output').text('fail')	
-					},
-					success: function(data){
-					venue_id = data.results.venuematches.venue.id 	
-					$('#output').text(venue_id)
-				var events;
-				method_str = 'venue.getEvents'
-				$.ajax({
-					dataType:'jsonp',
-					data:{
-						venue: venue_id, 
-						format: 'json',
-						method: method_str,
-						api_key: API_key
-					},
-					url: root_api_url,
-					error: function(){
-					$('#output').text('fail')	
-					},
-					success: function(data){					
-					$('#events').text(data.events.event[0].title)
-					}
+
+				$('#enddatepicker').datepicker({
+					inline: true
+				});
+
+				var eventdate;
+				$('#venue_name_btn').click(function(){
+					getVenueID($('#venue_name').val(),
+						function(data){	
+							
+							switch (typeof data.results.venuematches.venue) 
+							{
+	
+							case "object":
+							if ($.isArray(data.results.venuematches.venue))
+								{
+								venue_id = data.results.venuematches.venue[0].id
+								venue_name = data.results.venuematches.venue[0].name
+								$('body').append('<div class="' + venue_id 	 + '">' + venue_name + '</div>')
+								}
+							else
+								{
+								venue_id = data.results.venuematches.venue.id
+								venue_name = data.results.venuematches.venue.name
+								$('body').append('<div class="' + venue_id 	 + '">' + venue_name + '</div>')
+								}
+								break;
+							case "undefined":
+								
+								$('body').append('<div>' + 'Not Found' + '</div>')
+								break;
+
+							}
+						if (typeof data.results.venuematches.venue != 'undefined')	
+				    		{
+				    		getVenueEvents(venue_id, 
+					    		function(data2){
+									$.each(data2.events.event, 
+										function(i,evt){
+											  eventdate = Date.parse(evt.startDate)
+											  startdate = Date.parse($('#startdatepicker').val())
+											  enddate   = Date.parse($('#enddatepicker').val())
+											
+											if (eventdate >= startdate &&  eventdate <= enddate)  
+											{
+												if (i == 0)
+												{
+												$('body').append(evt.title)
+												}
+												else
+												{
+												$('body').append("," + evt.title)	
+												}
+											}										    		
+										 } 
+									 )	
+				   				}
+				   			) 
+				 			}
+
+				 		}
+
+				 	);
 				})
-					}
-				})
-
-
-
-
 
 
 			});
@@ -67,10 +95,21 @@
 
 <body>
 Hello World
-<div id=datepicker></div>
+<p>Start Date: <input type="text" id="startdatepicker"></p>
+<p>End Date: <input type="text" id="enddatepicker"></p>
+
+	<label for="venue_name">Venue Name: </label>
+	<input id="venue_name">
+	<button id="venue_name_btn">Go</button>
 <div id=output></div>
 
 <div id=events></div>
+</br>
+</br></br></br></br></br></br></br></br>
+<object width="250" height="200" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" id="gsManySongs247617913039197167" name="gsManySongs247617913039197167"><param name="movie" value="http://grooveshark.com/songWidget.swf" /><param name="wmode" value="window" /><param name="allowScriptAccess" value="always" /><param name="flashvars" value="hostname=cowbell.grooveshark.com&songIDs=24761791,30391971,30391936,30392054,22636190,25672990,29789778,29412501,30322233,30322190,22963654,27817736,26327964&bbg=FFFFFF&bth=FFFFFF&pfg=FFFFFF&lfg=FFFFFF&bt=377D9F&pbg=377D9F&pfgh=377D9F&si=377D9F&lbg=377D9F&lfgh=377D9F&sb=377D9F&bfg=F6D61F&pbgh=F6D61F&lbgh=F6D61F&sbh=F6D61F&p=0" /><object type="application/x-shockwave-flash" data="http://grooveshark.com/widget.swf" width="250" height="200"><param name="wmode" value="window" /><param name="allowScriptAccess" value="always" /><param name="flashvars" value="hostname=cowbell.grooveshark.com&songIDs=24761791,30391971,30391936,30392054,22636190,25672990,29789778,29412501,30322233,30322190,22963654,27817736,26327964&bbg=FFFFFF&bth=FFFFFF&pfg=FFFFFF&lfg=FFFFFF&bt=377D9F&pbg=377D9F&pfgh=377D9F&si=377D9F&lbg=377D9F&lfgh=377D9F&sb=377D9F&bfg=F6D61F&pbgh=F6D61F&lbgh=F6D61F&sbh=F6D61F&p=0" /></object></object>
+
 
 </body>
 </html>
+
+
